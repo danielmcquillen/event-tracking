@@ -73,6 +73,7 @@ class AwsLambdaBackend(object):
             LogType='None',
             Payload=event_str.encode('utf-8')
         )
+        log.info("#IBIO: event-tracking aws_lambda boto response", response)
 
 
 class DateTimeJSONEncoder(json.JSONEncoder):
