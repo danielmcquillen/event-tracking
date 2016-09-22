@@ -7,6 +7,7 @@ import logging
 import json
 from pytz import UTC
 import boto
+import os
 
 log = logging.getLogger(__name__)
 
@@ -45,7 +46,10 @@ class AwsLambdaBackend(object):
         """
         `lambda_arn` is the full ARN for the Lambda function, e.g. arn:aws:lambda:us-west-2:account-id:function:EventTracker
         """
-        self.lambda_arn = kwargs.get('lambda_arn', None)
+
+        # TEMP: Use enviro variable. Later this should be passed in via config
+        self.lambda_arn = os.environ.get('AWS_EVENT_TRACKER_ARN')
+        # self.lambda_arn = kwargs.get('lambda_arn', None)
 
     def send(self, event):
         """
