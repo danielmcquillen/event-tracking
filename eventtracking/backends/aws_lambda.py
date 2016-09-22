@@ -15,7 +15,7 @@ try:
     import boto3
 except:
     log.warning(
-        'Could not import boto for AWS_Lambda event tracker. No events will be sent to the Lambda backend.'
+        'Could not import boto3 for AWS_Lambda event tracker. No events will be sent to the Lambda backend.'
     )
 
 
@@ -40,17 +40,8 @@ class AwsLambdaBackend(object):
 
 
     """
-    lambda_arn = None
+    lambda_arn = getattr(settings, 'AWS_EVENT_TRACKER_ARN', None)
     client = boto3.client('lambda', region_name="us-west-2")
-
-    def __init__(self, **kwargs):
-        """
-        `lambda_arn` is the full ARN for the Lambda function, e.g. arn:aws:lambda:us-west-2:account-id:function:EventTracker
-        """
-
-        # TEMP: Use enviro variable. Later this should be passed in via config
-        self.lambda_arn = getattr(settings, 'AWS_EVENT_TRACKER_ARN', None)
-        # self.lambda_arn = kwargs.get('lambda_arn', None)
 
     def send(self, event):
         """
@@ -73,6 +64,9 @@ class AwsLambdaBackend(object):
             InvocationType='Event',
             Payload=event_str.encode('utf-8')
         )
+        log.info(u"#IBIO: aws_lambda ARN is '%s'", self.lambda_arn)
+        log.info(u"#IBIO: aws_lambda event is '%s'", event_str)
+        log.info(u"#IBIO: aws_lambda response is '%s'", json.dumps(response))
 
 
 class DateTimeJSONEncoder(json.JSONEncoder):
