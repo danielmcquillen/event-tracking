@@ -6,13 +6,12 @@ from datetime import date
 import logging
 import json
 from pytz import UTC
-import boto
 import os
 
 log = logging.getLogger(__name__)
 
 try:
-    import boto
+    import boto3
 except:
     log.warning(
         'Could not import boto for AWS_Lambda event tracker. No events will be sent to the Lambda backend.'
@@ -41,6 +40,7 @@ class AwsLambdaBackend(object):
 
     """
     lambda_arn = None
+    client = boto3.client('lambda')
 
     def __init__(self, **kwargs):
         """
@@ -55,7 +55,7 @@ class AwsLambdaBackend(object):
         """
         Use the boto3 to send async events to AWS Lambda
         """
-        if boto is None:
+        if boto3 is None:
             return
 
         if self.lambda_arn is None:
