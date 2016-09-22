@@ -40,8 +40,14 @@ class AwsLambdaBackend(object):
 
 
     """
-    lambda_arn = getattr(settings, 'AWS_EVENT_TRACKER_ARN', None)
-    client = boto3.client('lambda', region_name="us-west-2")
+
+    def __init__(self):
+        """
+        Connect to Lambda
+        """
+        self.lambda_arn = getattr(settings, 'AWS_EVENT_TRACKER_ARN', None)
+        self.client = boto3.client('lambda', region_name="us-west-2")
+
 
     def send(self, event):
         """
@@ -58,15 +64,11 @@ class AwsLambdaBackend(object):
 
         # Send event
         # Use 'Event' for Invocation type so that the call is async
-
         response = client.invoke(
             FunctionName=self.lambda_arn,
             InvocationType='Event',
             Payload=event_str.encode('utf-8')
         )
-        log.info(u"#IBIO: aws_lambda ARN is '%s'", self.lambda_arn)
-        log.info(u"#IBIO: aws_lambda event is '%s'", event_str)
-        log.info(u"#IBIO: aws_lambda response is '%s'", json.dumps(response))
 
 
 class DateTimeJSONEncoder(json.JSONEncoder):
