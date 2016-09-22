@@ -40,7 +40,7 @@ class AwsLambdaBackend(object):
 
     """
     lambda_arn = None
-    client = boto3.client('lambda', region_name="us-west-1")
+    client = boto3.client('lambda', region_name="us-west-2")
 
     def __init__(self, **kwargs):
         """
