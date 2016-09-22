@@ -70,10 +70,8 @@ class AwsLambdaBackend(object):
         response = client.invoke(
             FunctionName=self.lambda_arn,
             InvocationType='Event',
-            LogType='None',
             Payload=event_str.encode('utf-8')
         )
-        log.info("#IBIO: event-tracking aws_lambda boto response", response)
 
 
 class DateTimeJSONEncoder(json.JSONEncoder):
