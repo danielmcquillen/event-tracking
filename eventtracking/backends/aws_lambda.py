@@ -8,16 +8,9 @@ import json
 from pytz import UTC
 from django.conf import settings
 import os
+import boto3
 
 log = logging.getLogger(__name__)
-
-try:
-    import boto3
-except:
-    log.warning(
-        'Could not import boto3 for AWS_Lambda event tracker. No events will be sent to the Lambda backend.'
-    )
-
 
 class AwsLambdaBackend(object):
     """
@@ -45,28 +38,26 @@ class AwsLambdaBackend(object):
         """
         Connect to Lambda
         """
-        self.lambda_arn = getattr(settings, 'AWS_EVENT_TRACKER_ARN', None)
-        access_key = getattr(settings, 'AWS_ACCESS_KEY_ID', None),
-        secret_key = getattr(settings, 'AWS_SECRET_ACCESS_KEY', None),
-        self.client = boto3.client('lambda', aws_access_key_id=access_key, aws_secret_access_key=secret_key, region_name="us-west-2")
+        self.lambda_arn = settings.AWS_EVENT_TRACKER_ARN
+        access_key = settings.AWS_ACCESS_KEY_ID
+        secret_key = settings.AWS_SECRET_ACCESS_KEY
+        self.client = boto3.client('lambda',
+                                   aws_access_key_id=access_key,
+                                   aws_secret_access_key=secret_key,
+                                   region_name="us-west-2")
 
 
     def send(self, event):
         """
         Use the boto3 to send async events to AWS Lambda
         """
-        if boto3 is None:
-            return
-
-        if self.lambda_arn is None:
-            return
 
         #Encode event info
         event_str = json.dumps(event, cls=DateTimeJSONEncoder)
 
         # Send event
         # Use 'Event' for Invocation type so that the call is async
-        response = client.invoke(
+        response = self.client.invoke(
             FunctionName=self.lambda_arn,
             InvocationType='Event',
             Payload=event_str.encode('utf-8')
