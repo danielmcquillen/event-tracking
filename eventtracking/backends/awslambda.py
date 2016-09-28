@@ -9,6 +9,7 @@ from pytz import UTC
 from django.conf import settings
 import os
 import boto3
+from django.contrib.auth.models import User
 
 log = logging.getLogger(__name__)
 
