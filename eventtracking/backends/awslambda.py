@@ -17,17 +17,13 @@ class AwsLambdaBackend(object):
 
     Send events to Amazon Lambda, where it can be routed to other AWS resources or 3rd party applications.
 
-    Since this is a test implementation, we're only interested in sending along a few events:
-
-        name = edx.bi.user.account.registered
-        name = edx.course.enrollment.activated
-
     Requires all emitted events to have the following structure (at a minimum):
 
         {
             'name': 'something',
             'context': {
                 'user_id': 10,
+                'user_email': 'somebody@somewhere.com"
             }
         }
 
@@ -52,16 +48,41 @@ class AwsLambdaBackend(object):
         Use the boto3 to send async events to AWS Lambda
         """
 
+        # Lookup user's email and set in context.
+        # We're only do this b/c we whitelisted only two events, so this
+        # db operation won't happen on *every* event. Ideally, email should be sent
+        # through in context, but that's not the case at the moment...
+
+        context = event.get('context')
+        if not context:
+            log.info('AWSLambdaService: Event was missing context.', event)
+            return None
+
+        user_id = context.get('user_id')
+        if not user_id:
+            log.info('AWSLambdaService: user_id attribute missing from event')
+            return None
+
+        try:
+            user = User.objects.get(pk=user_id)
+        except User.DoesNotExist:
+            log.info('Can not find a user with user_id: %s', user_id)
+            return None
+
+        setattr(event.context, 'email', user.email)
+
         #Encode event info
         event_str = json.dumps(event, cls=DateTimeJSONEncoder)
 
-        # Send event
-        # Use 'Event' for Invocation type so that the call is async
+        # Send event to the target AWS Lambda function
+        # Use 'Event' for Invocation type so that the call is async (?)
         response = self.client.invoke(
             FunctionName=self.lambda_arn,
             InvocationType='Event',
             Payload=event_str.encode('utf-8')
         )
+
+        # TODO: Do we want to log error response codes?
 
 
 class DateTimeJSONEncoder(json.JSONEncoder):
