@@ -71,7 +71,7 @@ class AwsLambdaBackend(object):
             log.error('Can not find a user with user_id: %s', user_id)
             return None
 
-        setattr(context, 'email', user.email)
+        context['email'] = user.email
 
         #Encode event info
         event_str = json.dumps(event, cls=DateTimeJSONEncoder)
