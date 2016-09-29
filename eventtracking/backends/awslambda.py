@@ -51,9 +51,9 @@ class AwsLambdaBackend(object):
         """
 
         # Lookup user's email and set in context.
-        # We're only do this b/c we whitelisted only two events, so this
-        # db operation won't happen on *every* event. Ideally, email should be sent
-        # through in context, but that's not the case at the moment...
+        # We're only do this b/c we whitelisted only a few events, so this
+        # db operation won't happen on *every* event. Ideally, email should arrive here
+        # already with email set, but that's not the case at the moment...
 
         context = event.get('context')
         if not context:
@@ -71,8 +71,7 @@ class AwsLambdaBackend(object):
             log.error('Can not find a user with user_id: %s', user_id)
             return None
 
-        setattr(event.context, 'email', user.email)
-        log.info('Email was set to ', event.context.email)
+        setattr(context, 'email', user.email)
 
         #Encode event info
         event_str = json.dumps(event, cls=DateTimeJSONEncoder)
