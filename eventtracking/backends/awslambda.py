@@ -11,7 +11,8 @@ import os
 import boto3
 from django.contrib.auth.models import User
 
-log = logging.getLogger(__name__)
+# Temp: logging to tracker's log
+log = logging.getLogger('track.backends.application_log')
 
 class AwsLambdaBackend(object):
     """
@@ -21,10 +22,10 @@ class AwsLambdaBackend(object):
     Requires all emitted events to have the following structure (at a minimum):
 
         {
-            'name': 'something',
+            'name': 'some.edx.event.name',
             'context': {
                 'user_id': 10,
-                'user_email': 'somebody@somewhere.com"
+                'email': 'somebody@somewhere.com"
             }
         }
 
@@ -56,27 +57,37 @@ class AwsLambdaBackend(object):
 
         context = event.get('context')
         if not context:
-            log.info('AWSLambdaService: Event was missing context.', event)
+            log.error('AWSLambdaService: Event was missing context.', event)
             return None
 
         user_id = context.get('user_id')
         if not user_id:
-            log.info('AWSLambdaService: user_id attribute missing from event')
+            log.error('AWSLambdaService: user_id attribute missing from event')
             return None
 
         try:
             user = User.objects.get(pk=user_id)
         except User.DoesNotExist:
-            log.info('Can not find a user with user_id: %s', user_id)
+            log.error('Can not find a user with user_id: %s', user_id)
             return None
 
         setattr(event.context, 'email', user.email)
+        log.info('Email was set to ', event.context.email)
 
         #Encode event info
         event_str = json.dumps(event, cls=DateTimeJSONEncoder)
 
         # Send event to the target AWS Lambda function
         # Use 'Event' for Invocation type so that the call is async (?)
+        #
+        # Note that boto3 call should return a response as a dictionary like:
+        # {
+        #    'StatusCode': 123,
+        #    'FunctionError': 'string',
+        #     'LogResult': 'string',
+        #     'Payload': StreamingBody()
+        # }
+
         response = self.client.invoke(
             FunctionName=self.lambda_arn,
             InvocationType='Event',
@@ -84,6 +95,8 @@ class AwsLambdaBackend(object):
         )
 
         # TODO: Do we want to log error response codes?
+        log.info("AWSLambdaService: aws lambda call response: ", response)
+
 
 
 class DateTimeJSONEncoder(json.JSONEncoder):
