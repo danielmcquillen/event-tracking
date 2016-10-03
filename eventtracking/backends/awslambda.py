@@ -55,6 +55,13 @@ class AwsLambdaBackend(object):
         # db operation won't happen on *every* event. Ideally, email should arrive here
         # already with email set, but that's not the case at the moment...
 
+        event_name = event.get('name')
+        if not context:
+            log.error('AWSLambdaService: Event was missing name.', event)
+            return None
+
+        log.info("AWSLambdaService: aws lambda call for event name: ", event_name)
+
         context = event.get('context')
         if not context:
             log.error('AWSLambdaService: Event was missing context.', event)
