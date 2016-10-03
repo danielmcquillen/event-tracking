@@ -101,6 +101,7 @@ class AwsLambdaBackend(object):
         )
 
         # TODO: Do we want to log error response codes?
+        log.info("AWSLambdaService: aws lambda send event: ", event_name)
         log.info("AWSLambdaService: aws lambda call response: ", response)
 
 
