@@ -14,6 +14,7 @@ from django.contrib.auth.models import User
 # Temp: logging to tracker's log
 log = logging.getLogger('track.backends.application_log')
 
+
 class AwsLambdaBackend(object):
     """
 
@@ -44,7 +45,6 @@ class AwsLambdaBackend(object):
                                    aws_secret_access_key=secret_key,
                                    region_name="us-west-2")
 
-
     def send(self, event):
         """
         Use the boto3 to send async events to AWS Lambda
@@ -56,7 +56,7 @@ class AwsLambdaBackend(object):
         # already with email set, but that's not the case at the moment...
 
         event_name = event.get('name')
-        if not context:
+        if not event_name:
             log.error('AWSLambdaService: Event was missing name.', event)
             return None
 
@@ -80,7 +80,7 @@ class AwsLambdaBackend(object):
 
         context['email'] = user.email
 
-        #Encode event info
+        # Encode event info
         event_str = json.dumps(event, cls=DateTimeJSONEncoder)
 
         # Send event to the target AWS Lambda function
@@ -103,7 +103,6 @@ class AwsLambdaBackend(object):
         # TODO: Do we want to log error response codes?
         log.info("AWSLambdaService: aws lambda send event: ", event_name)
         log.info("AWSLambdaService: aws lambda call response: ", response)
-
 
 
 class DateTimeJSONEncoder(json.JSONEncoder):
