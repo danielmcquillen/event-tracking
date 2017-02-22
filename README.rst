@@ -1,3 +1,10 @@
+
+iBio Note:
+=====================================
+This is a fork of the Open edX Event Tracking Library
+We've added one backend to help us track events on AWS Lambda.
+
+
 Part of `edX code`__.
 
 __ http://code.edx.org/
