@@ -83,7 +83,7 @@ class AwsLambdaBackend(object):
         try:
             user = User.objects.get(pk=user_id)
         except User.DoesNotExist:
-            log.error("Can not find a user with user_id: {} . Not sending event to AWSLambda.".format(user_id))
+            log.error("Cannot find a user with user_id: {} . Not sending to AWSLambda.".format(user_id))
             return None
 
         # Make sure user's email is included, since we use that
