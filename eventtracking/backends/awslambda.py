@@ -55,6 +55,10 @@ class AwsLambdaBackend(object):
         # db operation won't happen on *every* event. Ideally, email should arrive here
         # already with email set, but that's not the case at the moment...
 
+        if not event:
+            log.error("AWSLambdaService: No 'event' argument was provided")
+            return None
+
         event_name = event.get('name')
         if not event_name:
             log.error('AWSLambdaService: Event was missing name.', event)
