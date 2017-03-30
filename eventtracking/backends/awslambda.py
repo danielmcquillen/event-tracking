@@ -100,10 +100,16 @@ class AwsLambdaBackend(object):
         #     'Payload': StreamingBody()
         # }
 
+        try:
+            payload = event_str.encode('utf-8')
+        except:
+            log.exception("Couldn't encode event_str. event_str=".format(event_str))
+            return
+
         response = self.client.invoke(
             FunctionName=self.lambda_arn,
             InvocationType='Event',
-            Payload=event_str.encode('utf-8')
+            Payload=payload
         )
 
         # TODO: Do we want to log error response codes?
