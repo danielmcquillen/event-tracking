@@ -11,7 +11,7 @@ os.chdir(os.path.normpath(os.path.join(os.path.abspath(__file__), os.pardir)))
 
 setup(
     name='event-tracking',
-    version='0.2.6',
+    version='0.2.7',
     packages=find_packages(),
     include_package_data=True,
     license='AGPLv3 License',

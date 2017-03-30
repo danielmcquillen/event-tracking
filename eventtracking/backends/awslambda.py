@@ -56,25 +56,29 @@ class AwsLambdaBackend(object):
         # already with email set, but that's not the case at the moment...
 
         if not event:
-            log.warn("AWSLambdaService: No 'event' argument was provided. Not sending event to AWSLambda.")
+            log.warn("AWSLambdaService: No 'event' argument was provided. Not sending to AWSLambda.")
             return None
 
         event_name = event.get('name')
         if not event_name:
-            log.warn('AWSLambdaService: Event was missing name property. Not sending event to AWSLambda.', event)
+            log.warn('AWSLambdaService: Event was missing name property. Not sending to AWSLambda.', event)
             return None
 
         log.info("AWSLambdaService: aws lambda call for event name {} ".format(event_name))
 
         context = event.get('context')
         if not context:
-            log.warn("AWSLambdaService: Event was missing context. Not sending event to AWSLambda.", event)
+            log.warn("AWSLambdaService: Event was missing context. Not sending to AWSLambda.", event)
             return None
 
         user_id = context.get('user_id')
+        # Some events include user_id in context, and some in the actual event body, so
+        # check both places
         if not user_id:
-            log.warn("AWSLambdaService: event {} missing user_id attribute. Not sending event to AWSLambda.".format(event_name))
-            return None
+            user_id = event.get('user_id')
+            if not user_id:
+                log.warn("AWSLambdaService: event {} no user_id in context or event body. Not sending to AWSLambda.".format(event_name))
+                return None
 
         try:
             user = User.objects.get(pk=user_id)
