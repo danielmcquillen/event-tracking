@@ -56,32 +56,34 @@ class AwsLambdaBackend(object):
         # already with email set, but that's not the case at the moment...
 
         if not event:
-            log.error("AWSLambdaService: No 'event' argument was provided")
+            log.warn("AWSLambdaService: No 'event' argument was provided. Not sending event to AWSLambda.")
             return None
 
         event_name = event.get('name')
         if not event_name:
-            log.error('AWSLambdaService: Event was missing name.', event)
+            log.warn('AWSLambdaService: Event was missing name property. Not sending event to AWSLambda.', event)
             return None
 
-        log.info("AWSLambdaService: aws lambda call for event name: ", event_name)
+        log.info("AWSLambdaService: aws lambda call for event name {} ".format(event_name))
 
         context = event.get('context')
         if not context:
-            log.error('AWSLambdaService: Event was missing context.', event)
+            log.warn("AWSLambdaService: Event was missing context. Not sending event to AWSLambda.", event)
             return None
 
         user_id = context.get('user_id')
         if not user_id:
-            log.error('AWSLambdaService: user_id attribute missing from event')
+            log.warn("AWSLambdaService: event {} missing user_id attribute. Not sending event to AWSLambda.".format(event_name))
             return None
 
         try:
             user = User.objects.get(pk=user_id)
         except User.DoesNotExist:
-            log.error('Can not find a user with user_id: %s', user_id)
+            log.error("Can not find a user with user_id: {} . Not sending event to AWSLambda.".format(user_id))
             return None
 
+        # Make sure user's email is included, since we use that
+        # to uniquely identify student in automated email system
         context['email'] = user.email
 
         # Encode event info
@@ -105,8 +107,7 @@ class AwsLambdaBackend(object):
         )
 
         # TODO: Do we want to log error response codes?
-        log.info("AWSLambdaService: aws lambda send event: ", event_name)
-        log.info("AWSLambdaService: aws lambda call response: ", response)
+        log.info("AWSLambdaService: aws lambda send event: {} ".format(event_name))
 
 
 class DateTimeJSONEncoder(json.JSONEncoder):
