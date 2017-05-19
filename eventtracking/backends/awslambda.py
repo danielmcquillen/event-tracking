@@ -95,18 +95,28 @@ class AwsLambdaBackend(object):
         # UPDATE "DATA" OBJECT IN EVENT
         # User in event.data can be different from user in context (e.g. instructor uses dashboard to enroll student)
         # So find and set email if user_id is different
-
         data = event.get('data')
-        if data:
-            data_user_id = data.get('user_id')
-            if data_user_id:
-                if data_user_id == user_id:
-                    data['email'] = user.email
-                else:
-                    #this is a different user, must look up their email
-                    data_user = User.objects.get(pk=data_user_id)
-                    data['email'] = data_user.email
+        if not data:
+            log.warn("AWSLambdaService: event {} no data object in event body. Not sending to AWSLambda.".format(
+                event_name))
+            return None
 
+        # if user_id doesn't appear in data, let's assume the event
+        # applies to the user in event.context
+        data_user_id = data.get('user_id')
+        if not data_user_id:
+            data_user_id = user_id
+
+        if data_user_id == user_id:
+            data['email'] = user.email
+        else:
+            # this is a different user, must look up their email separately
+            try:
+                data_user = User.objects.get(pk=data_user_id)
+                data['email'] = data_user.email
+            except User.DoesNotExist:
+                log.error("Cannot find a user in event.data with user_id: {} . Not sending to AWSLambda.".format(data_user_id))
+                return None
 
         # Encode event info
         event_str = json.dumps(event, cls=DateTimeJSONEncoder)
