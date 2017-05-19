@@ -66,6 +66,8 @@ class AwsLambdaBackend(object):
 
         log.info("AWSLambdaService: aws lambda call for event name {} ".format(event_name))
 
+        # UPDATE "CONTEXT" OBJECT IN EVENT
+
         context = event.get('context')
         if not context:
             log.warn("AWSLambdaService: Event was missing context. Not sending to AWSLambda.", event)
@@ -89,6 +91,22 @@ class AwsLambdaBackend(object):
         # Make sure user's email is included, since we use that
         # to uniquely identify student in automated email system
         context['email'] = user.email
+
+        # UPDATE "DATA" OBJECT IN EVENT
+        # User in event.data can be different from user in context (e.g. instructor uses dashboard to enroll student)
+        # So find and set email if user_id is different
+
+        data = event.get('data')
+        if data:
+            data_user_id = data.get('user_id')
+            if data_user_id:
+                if data_user_id == user_id:
+                    data['email'] = user.email
+                else:
+                    #this is a different user, must look up their email
+                    data_user = User.objects.get(pk=data_user_id)
+                    data['email'] = data_user.email
+
 
         # Encode event info
         event_str = json.dumps(event, cls=DateTimeJSONEncoder)
