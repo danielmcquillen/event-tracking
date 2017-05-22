@@ -92,9 +92,11 @@ class AwsLambdaBackend(object):
         # to uniquely identify student in automated email system
         context['email'] = user.email
 
-        # UPDATE "DATA" OBJECT IN EVENT
-        # User in event.data can be different from user in context (e.g. instructor uses dashboard to enroll student)
-        # So find and set email if user_id is different
+        # UPDATE "DATA" OBJECT IN EVENT TO CORRECT USER
+        # User in event.data can be different from user in context
+        # (e.g. instructor user uses dashboard to enroll student user)
+        # So find and set email and username in the data object if user_id is different
+        # Our databroker needs email and username set in the 'data' object.
         data = event.get('data')
         if not data:
             log.warn("AWSLambdaService: event {} no data object in event body. Not sending to AWSLambda.".format(
@@ -109,11 +111,13 @@ class AwsLambdaBackend(object):
 
         if data_user_id == user_id:
             data['email'] = user.email
+            data['username'] = user.username
         else:
             # this is a different user, must look up their email separately
             try:
                 data_user = User.objects.get(pk=data_user_id)
                 data['email'] = data_user.email
+                data['username'] = data_user.username
             except User.DoesNotExist:
                 log.error("Cannot find a user in event.data with user_id: {} . Not sending to AWSLambda.".format(data_user_id))
                 return None
