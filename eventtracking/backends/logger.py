@@ -34,6 +34,11 @@ class LoggerBackend(object):
 
     def send(self, event):
         """Send the event to the standard python logger"""
+
+        # iBio: Ignore events from ELB
+        if hasattr(event, 'agent') and event.agent == "ELB-HealthChecker/1.0":
+            return
+
         event_str = json.dumps(event, cls=DateTimeJSONEncoder)
 
         # TODO: do something smarter than simply dropping the event on
