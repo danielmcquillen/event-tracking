@@ -56,12 +56,12 @@ class AwsLambdaBackend(object):
         # already with email set, but that's not the case at the moment...
 
         if not event:
-            log.warn("AWSLambdaService: No 'event' argument was provided. Not sending to AWSLambda.")
+            log.warning("AWSLambdaService: No 'event' argument was provided. Not sending to AWSLambda.")
             return None
 
         event_name = event.get('name')
         if not event_name:
-            log.warn('AWSLambdaService: Event was missing name property. Not sending to AWSLambda.', event)
+            log.warning('AWSLambdaService: Event was missing name property. Not sending to AWSLambda.', event)
             return None
 
         log.info("AWSLambdaService: aws lambda call for event name {} ".format(event_name))
@@ -70,7 +70,7 @@ class AwsLambdaBackend(object):
 
         context = event.get('context')
         if not context:
-            log.warn("AWSLambdaService: Event was missing context. Not sending to AWSLambda.", event)
+            log.warning("AWSLambdaService: Event was missing context. Not sending to AWSLambda.", event)
             return None
 
         user_id = context.get('user_id')
@@ -79,7 +79,7 @@ class AwsLambdaBackend(object):
         if not user_id:
             user_id = event.get('user_id')
             if not user_id:
-                log.warn("AWSLambdaService: event {} no user_id in context or event body. Not sending to AWSLambda.".format(event_name))
+                log.warning("AWSLambdaService: event {} no user_id in context or event body. Not sending to AWSLambda.".format(event_name))
                 return None
 
         try:
@@ -99,7 +99,7 @@ class AwsLambdaBackend(object):
         # Our databroker needs email and username set in the 'data' object.
         data = event.get('data')
         if not data:
-            log.warn("AWSLambdaService: event {} no data object in event body. Not sending to AWSLambda.".format(
+            log.warning("AWSLambdaService: event {} no data object in event body. Not sending to AWSLambda.".format(
                 event_name))
             return None
 
