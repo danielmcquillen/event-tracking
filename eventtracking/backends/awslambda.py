@@ -40,10 +40,12 @@ class AwsLambdaBackend(object):
         self.lambda_arn = settings.AWS_EVENT_TRACKER_ARN
         access_key = settings.AWS_ACCESS_KEY_ID
         secret_key = settings.AWS_SECRET_ACCESS_KEY
+        aws_region = getattr(settings, "AWS_EVENT_TRACKER_REGION", "us-west-2")
+
         self.client = boto3.client('lambda',
                                    aws_access_key_id=access_key,
                                    aws_secret_access_key=secret_key,
-                                   region_name="us-west-2")
+                                   region_name=aws_region)
 
     def send(self, event):
         """
